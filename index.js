@@ -89,6 +89,22 @@ app.patch('/users/employee/:id',  async(req,res) =>  {
   res.send(result)
 })
 ////////////////////////
+// update employee to HR
+app.patch('/users/hr/:id', async (req, res) => {
+  const item = req.body;
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) }
+  const updatedDoc = {
+    $set: {
+      role: 'hr',
+      
+    }
+  }
+
+  const result = await userCollection.updateOne(filter, updatedDoc)
+  res.send(result);
+})
+
 
     // Connect the client to the server	(optional starting in v4.7)
   //  await client.connect();
