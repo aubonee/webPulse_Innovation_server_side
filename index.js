@@ -44,10 +44,9 @@ app.post('/users', async(req,res)=>{
   res.send(result);
 })
 app.get('/users', async(req,res)=>{
-  console.log(req.headers);
-  const cursor =userCollection.find();
-  const result =await cursor.toArray();
+  const result =await userCollection.find().toArray();
   res.send(result);
+ 
 })
 
 ///////////employee detail
@@ -69,6 +68,27 @@ app.get('/worksheet', async(req,res)=>{
   const result =await taskCollection.find().toArray();
   res.send(result);
 })
+///////////////////////////////////////
+//////update employee verification
+app.get('/users/:id', async(req,res)=>{
+  const id  = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result =await userCollection.findOne(query);
+  res.send(result);
+})
+app.patch('/users/employee/:id',  async(req,res) =>  {
+  const id=req.params.id;
+  const filter ={ _id: new ObjectId(id)};
+  const updatedDoc ={
+    $set:{
+      isVerified:'verified'
+    }
+   
+  }
+  const result  = await  userCollection.updateOne(filter,updatedDoc);
+  res.send(result)
+})
+////////////////////////
 
     // Connect the client to the server	(optional starting in v4.7)
   //  await client.connect();
