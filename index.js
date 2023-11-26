@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app =express();
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 
@@ -36,6 +37,113 @@ async function run() {
     const userCollection=client.db('emplyeeDb').collection('user');
     const taskCollection=client.db('emplyeeDb').collection('task');
 
+      // jwt related api
+  app.post('/jwt', async (req, res) => {
+    const user = req.body;
+    const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    res.send({ token });
+  })
+
+  // middlewares 
+  const verifyToken = (req, res, next) => {
+    console.log('inside verify token', req.headers.authorization);
+    if (!req.headers.authorization) {
+      return res.status(401).send({ message: 'unauthorized access' });
+    }
+    const token = req.headers.authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).send({ message: 'unauthorized access' })
+      }
+      req.decoded = decoded;
+      next();
+    })
+  }
+////////////////////verifyAdmin,VerifyHr,VerifyEmployee
+  const verifyAdmin = async (req, res, next) => {
+    const email = req.decoded.email;
+    const query = { email: email };
+    const user = await userCollection.findOne(query);
+    const isAdmin = user?.role === 'admin';
+    if (!isAdmin) {
+      return res.status(403).send({ message: 'forbidden access' });
+    }
+    next();
+  }
+
+
+
+
+app.get('/users/admin/:email', verifyToken, async (req, res) => {
+  const email = req.params.email;
+
+  if (email !== req.query.email) {
+    return res.status(403).send({ message: 'forbidden access' })
+  }
+
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  
+  if (user) {
+  let admin = user?.role === 'admin';
+  }
+  res.send({ admin });
+})
+
+
+// const verifyHr = async (req, res, next) => {
+//   const email = req.decoded.email;
+//   const query = { email: email };
+//   const user = await userCollection.findOne(query);
+//   const isHr = user?.role === 'hr';
+//   if (!isHr) {
+//     return res.status(403).send({ message: 'forbidden access' });
+//   }
+//   next();
+// }
+
+// const verifyEmployee = async (req, res, next) => {
+//   const email = req.decoded.email;
+//   const query = { email: email };
+//   const user = await userCollection.findOne(query);
+//   const isEmployee = user?.role === 'employee';
+//   if (!isEmployee) {
+//     return res.status(403).send({ message: 'forbidden access' });
+//   }
+//   next();
+// }
+
+// app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
+//   const email = req.params.email;
+
+//   if (email !== req.query.email) {
+//     return res.status(403).send({ message: 'forbidden access' })
+//   }
+
+//   const query = { email: email };
+//   const user = await userCollection.findOne(query);
+//   let hr = false;
+//   if (user) {
+//     hr = user?.role === 'hr';
+//   }
+//   res.send({ hr });
+// })
+
+// app.get('/users/anemployee/:email', verifyToken, async (req, res) => {
+//   const email = req.params.email;
+
+//   if (email !== req.query.email) {
+//     return res.status(403).send({ message: 'forbidden access' })
+//   }
+
+//   const query = { email: email };
+//   const user = await userCollection.findOne(query);
+//   let employee = false;
+//   if (user) {
+//     employee = user?.role === 'employee';
+//   }
+//   res.send({ employee });
+// })
 
 ////////////user related api
 app.post('/users', async(req,res)=>{
@@ -56,7 +164,7 @@ app.delete('/users/:id', async(req,res) =>  {
 })
 
 ///////////employee detail
-app.get('/employeeDetail/:id', async (req, res) => {
+app.get('/employeeDetail/:id',  async (req, res) => {
   const id  = req.params.id;
   const query = { _id: new ObjectId(id) }
 
@@ -65,7 +173,7 @@ const result = await userCollection.findOne(query);
   
 })
 /////////////////////worksheet
-app.post('/worksheet', async(req,res)=>{
+app.post('/worksheet',  async(req,res)=>{
   const item =req.body;
   const result =await taskCollection.insertOne(item);
   res.send(result);
