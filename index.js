@@ -77,57 +77,57 @@ async function run() {
 app.get('/users/admin/:email', verifyToken, async (req, res) => {
   const email = req.params.email;
 
-  if (email !== req.query.email) {
+  if (email !== req.decoded.email) {
     return res.status(403).send({ message: 'forbidden access' })
   }
 
   const query = { email: email };
   const user = await userCollection.findOne(query);
-  
+  let admin=false
   if (user) {
-  let admin = user?.role === 'admin';
+   admin = user?.role === 'admin';
   }
   res.send({ admin });
 })
 
 
-// const verifyHr = async (req, res, next) => {
-//   const email = req.decoded.email;
-//   const query = { email: email };
-//   const user = await userCollection.findOne(query);
-//   const isHr = user?.role === 'hr';
-//   if (!isHr) {
-//     return res.status(403).send({ message: 'forbidden access' });
-//   }
-//   next();
-// }
+const verifyHr = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  const isHr = user?.role === 'hr';
+  if (!isHr) {
+    return res.status(403).send({ message: 'forbidden access' });
+  }
+  next();
+}
 
-// const verifyEmployee = async (req, res, next) => {
-//   const email = req.decoded.email;
-//   const query = { email: email };
-//   const user = await userCollection.findOne(query);
-//   const isEmployee = user?.role === 'employee';
-//   if (!isEmployee) {
-//     return res.status(403).send({ message: 'forbidden access' });
-//   }
-//   next();
-// }
+const verifyEmployee = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  const isEmployee = user?.role === 'employee';
+  if (!isEmployee) {
+    return res.status(403).send({ message: 'forbidden access' });
+  }
+  next();
+}
 
-// app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
-//   const email = req.params.email;
+app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
+  const email = req.params.email;
 
-//   if (email !== req.query.email) {
-//     return res.status(403).send({ message: 'forbidden access' })
-//   }
+  if (email !== req.decoded.email) {
+    return res.status(403).send({ message: 'forbidden access' })
+  }
 
-//   const query = { email: email };
-//   const user = await userCollection.findOne(query);
-//   let hr = false;
-//   if (user) {
-//     hr = user?.role === 'hr';
-//   }
-//   res.send({ hr });
-// })
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  let hr = false;
+  if (user) {
+    hr = user?.role === 'hr';
+  }
+  res.send({ hr });
+})
 
 // app.get('/users/anemployee/:email', verifyToken, async (req, res) => {
 //   const email = req.params.email;
@@ -178,10 +178,18 @@ app.post('/worksheet',  async(req,res)=>{
   const result =await taskCollection.insertOne(item);
   res.send(result);
 })
-app.get('/worksheet', async(req,res)=>{
-  const result =await taskCollection.find().toArray();
-  res.send(result);
+
+app.get('/worksheet',async(req,res)=>{
+    const email=req.query.email;
+    const query ={ email: email};
+    const result =await taskCollection.find(query).toArray();
+    res.send(result);
 })
+// app.get('/worksheet', async(req,res)=>{
+//   const result =await taskCollection.find().toArray();
+//   res.send(result);
+// })
+
 ///////////////////////////////////////
 //////update employee verification
 app.get('/users/:id', async(req,res)=>{
