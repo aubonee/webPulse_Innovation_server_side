@@ -36,6 +36,10 @@ async function run() {
       
     const userCollection=client.db('emplyeeDb').collection('user');
     const taskCollection=client.db('emplyeeDb').collection('task');
+    const reviewCollection=client.db('emplyeeDb').collection('reviews');
+    const serviceCollection=client.db('emplyeeDb').collection('services');
+    
+
 
       // jwt related api
   app.post('/jwt', async (req, res) => {
@@ -129,22 +133,34 @@ app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
   res.send({ hr });
 })
 
-// app.get('/users/anemployee/:email', verifyToken, async (req, res) => {
-//   const email = req.params.email;
+app.get('/users/anemployee/:email', verifyToken, async (req, res) => {
+  const email = req.params.email;
 
-//   if (email !== req.query.email) {
-//     return res.status(403).send({ message: 'forbidden access' })
-//   }
+  if (email !== req.decoded.email) {
+    return res.status(403).send({ message: 'forbidden access' })
+  }
 
-//   const query = { email: email };
-//   const user = await userCollection.findOne(query);
-//   let employee = false;
-//   if (user) {
-//     employee = user?.role === 'employee';
-//   }
-//   res.send({ employee });
-// })
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  let employee = false;
+  if (user) {
+    employee = user?.role === 'employee';
+  }
+  res.send({ employee });
+})
+///////////////////////////testimonial
 
+app.get('/reviews', async(req,res)=>{
+  const result =await reviewCollection.find().toArray();
+  res.send(result);
+ 
+})
+/////////////////////sevices
+app.get('/services', async(req,res)=>{
+  const result =await serviceCollection.find().toArray();
+  res.send(result);
+ 
+})
 ////////////user related api
 app.post('/users', async(req,res)=>{
   const user =req.body;
@@ -185,10 +201,10 @@ app.get('/worksheet',async(req,res)=>{
     const result =await taskCollection.find(query).toArray();
     res.send(result);
 })
-// app.get('/worksheet', async(req,res)=>{
-//   const result =await taskCollection.find().toArray();
-//   res.send(result);
-// })
+app.get('/progress', async(req,res)=>{
+  const result =await taskCollection.find().toArray();
+  res.send(result);
+})
 
 ///////////////////////////////////////
 //////update employee verification
@@ -239,6 +255,24 @@ app.patch('/users/hr/:id', async (req, res) => {
   const result = await userCollection.updateOne(filter, updatedDoc)
   res.send(result);
 })
+
+//////payment intent
+
+app.post('/create-payment-intent', async (req, res) => {
+  const { salary } = req.body;
+  const amount = parseInt(salary * 100);
+  console.log(amount, 'amount inside the intent')
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: 'usd',
+    payment_method_types: ['card']
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  })
+});
 
 
     // Connect the client to the server	(optional starting in v4.7)
