@@ -3,6 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app =express();
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 require('dotenv').config()
@@ -75,26 +76,6 @@ async function run() {
     next();
   }
 
-
-
-
-app.get('/users/admin/:email', verifyToken, async (req, res) => {
-  const email = req.params.email;
-
-  if (email !== req.decoded.email) {
-    return res.status(403).send({ message: 'forbidden access' })
-  }
-
-  const query = { email: email };
-  const user = await userCollection.findOne(query);
-  let admin=false
-  if (user) {
-   admin = user?.role === 'admin';
-  }
-  res.send({ admin });
-})
-
-
 const verifyHr = async (req, res, next) => {
   const email = req.decoded.email;
   const query = { email: email };
@@ -117,6 +98,21 @@ const verifyEmployee = async (req, res, next) => {
   next();
 }
 
+app.get('/users/admin/:email', verifyToken, async (req, res) => {
+  const email = req.params.email;
+
+  if (email !== req.decoded.email) {
+    return res.status(403).send({ message: 'forbidden access' })
+  }
+
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  let admin=false
+  if (user) {
+   admin = user?.role === 'admin';
+  }
+  res.send({ admin });
+})
 app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
   const email = req.params.email;
 
@@ -132,6 +128,7 @@ app.get('/users/ahr/:email',verifyToken,  async (req, res) => {
   }
   res.send({ hr });
 })
+
 
 app.get('/users/anemployee/:email', verifyToken, async (req, res) => {
   const email = req.params.email;
