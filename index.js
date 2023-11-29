@@ -41,6 +41,7 @@ async function run() {
     const taskCollection=client.db('emplyeeDb').collection('task');
     const reviewCollection=client.db('emplyeeDb').collection('reviews');
     const serviceCollection=client.db('emplyeeDb').collection('services');
+    const paymentCollection=client.db('emplyeeDb').collection('payments');
     
 
 
@@ -273,6 +274,20 @@ app.post('/create-payment-intent', async (req, res) => {
   })
 });
 
+app.post('/payments',async(req,res)=>{
+  const payment=req.body;
+  const paymentresult =await paymentCollection.insertOne(payment);
+  console.log(paymentresult);
+  res.send(paymentresult);
+
+})
+
+app.get('/payments',async(req,res)=>{
+  const email=req.query.email;
+  const query ={ email: email};
+  const result =await paymentCollection.find(query).toArray();
+  res.send(result);
+})
 
     // Connect the client to the server	(optional starting in v4.7)
   //  await client.connect();
