@@ -1,25 +1,27 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app =express();
+require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
-require('dotenv').config()
+
 
 
 const port =process.env.PORT || 5000;
 //middleware
 
-app.use(cors());
+app.use(cors({origin:[ 'http://localhost:5173',
+'https://employee-management-4380c.web.app']}));
 app.use(express.json());
 
     ///aubonee22
    ///EkTyD5bgKF24Xq9g
 
 
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rns2r0a.mongodb.net/?retryWrites=true&w=majority`;
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rns2r0a.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -276,7 +278,7 @@ app.post('/create-payment-intent', async (req, res) => {
   //  await client.connect();
     // Send a ping to confirm a successful connection
    //await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    //console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
    // await client.close();
